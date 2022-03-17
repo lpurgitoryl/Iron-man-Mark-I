@@ -1,5 +1,8 @@
 #include "modeRoutines.hpp"
+#include <SoftwareSerial.h>
 
+SoftwareSerial BT(8, 9); // pin 8 is connected to tx on hc and 9 via divider to rx
+String voice;
 
 // global pins and varibles for sms and struct for modes
 int outputEnablePinSH1 = 5; //control brightness with pwm for shift reg 1 (inner lights)
@@ -28,6 +31,7 @@ int TickFct_Light(int state) {
 static int localtick_Light;
 static reactor_mode* tempMode;
 static int tempDurration;
+static String Tvoice;
 
   switch (state){ // transition
     case lightmode_SMStart:
@@ -35,14 +39,12 @@ static int tempDurration;
       tempMode = &allModes[0];
       localtick_Light = 0;
       state = lightmode_Welcome;
-      
       sr.setAllLow();
     break;
 
     case lightmode_Welcome:
     //button input
       if(digitalRead(button)){
-        //Serial.print(digitalRead(button));
         tempMode = &allModes[inUse->modeNumber + 1];
         localtick_Light = 0;
       }
@@ -62,18 +64,48 @@ static int tempDurration;
     state = lightmode_Input;
     //button input
       if(digitalRead(button)){
-         //Serial.print(digitalRead(button));
-        if(inUse->modeNumber < totalModes){
-         tempMode = &allModes[inUse->modeNumber + 1];
-         }
-         else{
+      Serial.print("\n prev mode \n");
+      Serial.print(tempMode->modeNumber);
+      Serial.print("\n new mode \n");
+      Serial.print(tempMode->modeNumber + 1);
+       Serial.print("\n  \n");
+        if(inUse->modeNumber + 1 >= totalModes){
+         // Serial.print("\n girl its greater \n");
           tempMode = &allModes[1];
-         }
+          }else{
+            tempMode = &allModes[inUse->modeNumber + 1];
+          }
          localtick_Light = 0;
      }else{
           inUse = tempMode;
         }
-       
+  //bt
+   while(BT.available() ){  //Check if there is an available byte to read
+      char c = BT.read(); //Conduct a serial read
+      if (c != '#')
+        {
+          voice += c; //Shorthand for voice = voice + c
+        }
+      
+      if( voice.length()> 0) {
+       Serial.println("\n  voice\n "); Serial.println(voice); Serial.println("\n \n ");
+       Serial.println("\n  set bt og voice\n "); Serial.println(setBTmode(Tvoice)); Serial.println("\n \n ");
+        Tvoice = voice;
+        Serial.println("\n  Tvoice\n "); Serial.println(voice); Serial.println("\n \n ");
+        Serial.println("\n  set bt Tvoice\n "); Serial.println(setBTmode(Tvoice)); Serial.println("\n \n ");
+        }
+      else{ voice = "" ;}
+   }
+
+   if(setBTmode(Tvoice)!= -1 ){
+    Serial.println("\n Tvoice\n "); Serial.println(setBTmode(Tvoice)); Serial.println("\n \n ");
+    Serial.println("\n \n "); Serial.println(Tvoice); Serial.println("\n \n ");
+    tempMode = &allModes[setBTmode(Tvoice)];
+    inUse = tempMode;
+    voice = "" ; Tvoice= "";
+    }else{voice = "" ; Tvoice= "";}
+   //Serial.print(Tvoice);
+        
     break;
 
     default:
@@ -92,17 +124,19 @@ static int tempDurration;
 
     case lightmode_Input:
     localtick_Light++;
-    Serial.print('\n');
-    Serial.print("mode num");
-    Serial.print(inUse->modeNumber);
-    Serial.print('\n');
-      if(inUse->modeNumber == 1){
-       // systemsOnLights(localtick_Light);
+
+      if(inUse->modeNumber == 1 ){
+       systemsOnLights(localtick_Light);
       }
 
-      if(inUse->modeNumber == 2){
-      //  repulsorBlastLights(localtick_Light);
-      }  
+      if(inUse->modeNumber == 2 ){
+       repulsorBlastFadeOut(localtick_Light);
+       if(localtick_Light > 30){localtick_Light = 0;}
+      }
+      if(inUse->modeNumber == 3){
+        systemsDown();
+      } 
+   
     break;
 
     default:
@@ -144,7 +178,8 @@ void setup() {
 
   pinMode(button, INPUT);
   Serial.begin(9600);
-  
+  BT.begin(9600);
+
 }
 
 
@@ -158,5 +193,6 @@ void loop() {
       
      }
    }
+
   delay(100); // GCD.
 }

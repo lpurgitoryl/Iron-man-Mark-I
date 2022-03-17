@@ -26,9 +26,9 @@ void setBrightness(int outputEnable, int brightness) // 0 to 255
 
 // 
 
-void welcomeMrStarkLights( int localTick){ // runes for 12 secs
+void welcomeMrStarkLights( int localTick){ // 
 //outer ring
-if(localTick < 90  ){
+if(localTick < 70  ){//was 90
   bool oneOn = true;
     for(int i = 0; i <= ledsOutter ; i++ ){
       if(sr.get(i + firstOutterPin) == 0 && localTick % 4 == 0 && oneOn){
@@ -47,60 +47,64 @@ else{
     setBrightness(oeOutter, 255/ (localTick % 15)); 
     
     }
-  
 }
 }
 
 void systemsOnLights(int localTick){
 sr.set(0, HIGH);
+
 //mkae sure outter lights are on
 for(int i = 0; i <= ledsOutter ; i++ ){
       if(sr.get(i + firstOutterPin) == 0){
       sr.set(i + firstOutterPin, HIGH);
       }
 }  
-setBrightness(oeInner, 255);
-setBrightness(oeInner, 255);
+setBrightness(oeOutter, 255);
 
-    Serial.print("\n tick ");
-    Serial.print(localTick);
-    Serial.print("\n");
-    
-if(localTick < 10  ){
-      //if( localTick % 10 == 0 ){
-        sr.get(1) == 0 ? sr.set(1 , HIGH) : sr.set(1 , LOW) ;
-        sr.get(3) == 1 ? sr.set(3 , HIGH) : sr.set(3 , LOW);
-        sr.get(2) == 1 ? sr.set(2 , HIGH) : sr.set(2 , LOW);
-        sr.get(4) == 0 ? sr.set(4 , HIGH) : sr.set(4 , LOW);
-
-}else{sr.setAllHigh();}
+if(localTick < 40){
+  sr.setAllHigh();
+  setBrightness(oeInner, 255/ (localTick % 10));
+}else{setBrightness(oeInner, 255);setBrightness(oeOutter, 255);}
 
 }
 
-void repulsorBlastLights(int localTick){
-sr.set(0, HIGH);
-//mkae sure outter lights are on
-for(int i = 0; i <= ledsOutter ; i++ ){
-      if(sr.get(i + firstOutterPin) == 0){
-      sr.set(i + firstOutterPin, HIGH);
-      }
-}  
-setBrightness(oeInner, 255);
-setBrightness(oeInner, 255);
-    
-if(localTick < 80  ){
-      if( localTick % 10 == 0 ){
-        sr.get(1) == 0 ? sr.set(1 , HIGH) : sr.set(1 , LOW) ;
-        sr.get(3) == 1 ? sr.set(3 , HIGH) : sr.set(3 , LOW);
-        sr.get(2) == 1 ? sr.set(2 , HIGH) : sr.set(2 , LOW);
-        sr.get(4) == 0 ? sr.set(4 , HIGH) : sr.set(4 , LOW);
+void repulsorBlastWarmup(int localTick){ // 7 ticks
+   setBrightness(oeOutter , localTick * 35 );
+   setBrightness(oeInner , localTick * 35 );  
+}
 
-        
-      }else{
-        sr.get(1) == 1 ? sr.set(1 , LOW) : sr.set(1 , HIGH) ;
-        sr.get(3) == 0 ? sr.set(3 , HIGH) : sr.set(3 , LOW);
-        sr.get(2) == 0 ? sr.set(2 , HIGH) : sr.set(2 , LOW);
-        sr.get(4) == 1 ? sr.set(4 , LOW) : sr.set(4 , HIGH);}
+void repulsorBlastFadeOut(int localTick){
+  if(localTick <= 7){
+    sr.setAllHigh();
+    repulsorBlastWarmup(localTick);
+    
+   }else if ( localTick > 7){
+    for(int i = 0; i <= ledsOutter ; i++ ){
+      sr.set(i + firstOutterPin, LOW);
     } 
-  
+    for(int i = 0; i <= ledsInner ; i++ ){
+      sr.set(i, LOW);
+     
+    }
+}
+}
+
+void systemsDown(){
+  sr.setAllLow();  
+}
+
+int setBTmode(String voiced){ // returns neg 1 if no match
+  int modeSelect = -1;
+      if(voiced == "*system on"){
+       modeSelect = 1 ;
+      }
+
+      if(voiced == "*repulsor blast" ){
+      modeSelect = 2;
+      }
+      if(voiced == "*system down"){
+        modeSelect = 3;
+      } 
+    
+  return modeSelect;    
 }
