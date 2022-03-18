@@ -1,0 +1,10 @@
+﻿Quantity,Component
+1, Arduino Uno R3
+3, 8-Bit Shift Register
+10,Red LED
+9,White LED
+16,220 Ω Resistor
+1,HC-05 Bluetooth Module
+1,1 kΩ Resistor
+1,2 kΩ Resistor
+1, Pushbutton
