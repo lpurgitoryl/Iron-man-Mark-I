@@ -1,5 +1,7 @@
 # Iron-man-Mark-I
-Iron Man Arc reactor code based on https://www.thingiverse.com/thing:2069812
+Iron Man Arc reactor code based on https://www.thingiverse.com/thing:2069812  
+[Project video](https://www.youtube.com/watch?v=1DcfSf4Fniw)  
+
 ## Introduction
 The Mark I Arc Reactor consists of a 3D printed housing where 2 LED rings are embedded inside. These rings produce different light modes of different durations based on user input. 
 
